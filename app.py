@@ -14,34 +14,56 @@ else:
 st.set_page_config(page_title="Housing Strategy", page_icon="🏠")
 st.title("🏘️ Real Estate Strategy Predictor")
 
-# 2. Define expected columns EXACTLY as the model saw them during training
+# 1. The EXACT column names the model is looking for
 expected_columns = [
     'Prev2_Growth', 'Prev2_Population', 'Prev_Growth', 'Prev_Population', 'Year',
     'Region_Cordillera Administrative Region (CAR)',
     'Region_National Capital Region (NCR)',
-    'Region_I - Ilocos Region', 'Region_II - Cagayan Valley', 
-    'Region_III - Central Luzon', 'Region_CALABARZON', 
-    'Region_MIMAROPA Region', 'Region_V - Bicol Region',
-    'Region_VI - Western Visayas', 'Region_VII - Central Visayas', 
-    'Region_VIII - Eastern Visayas', 'Region_IX - Zamboanga Peninsula', 
-    'Region_X - Northern Mindanao', 'Region_XI - Davao Region',
-    'Region_XII - SOCCSKSARGEN', 'Region_13 - Caraga', 'Region_BARMM'
+    'Region_Region I (Ilocos Region)', 
+    'Region_Region II (Cagayan Valley)', 
+    'Region_Region III (Central Luzon)', 
+    'Region_Region IV-A (CALABARZON)', 
+    'Region_Region IV-B (MIMAROPA)',
+    'Region_Region V (Bicol Region)',
+    'Region_Region VI (Western Visayas)',
+    'Region_Region VII (Central Visayas)',
+    'Region_Region VIII (Eastern Visayas)',
+    'Region_Region IX (Zamboanga Peninsula)',
+    'Region_Region X (Northern Mindanao)',
+    'Region_Region XI (Davao Region)',
+    'Region_Region XII (SOCCSKSARGEN)',
+    'Region_Region XIII (Caraga)',
+    'Region_Autonomous Region in Muslim Mindanao (ARMM)'
 ]
 
-# 3. Create Inputs (Defined OUTSIDE and BEFORE the button)
+# 2. The display names for your dropdown (mapped to the keys above)
+regions_map = {
+    'Ilocos Region': 'Region I (Ilocos Region)',
+    'Cagayan Valley': 'Region II (Cagayan Valley)',
+    'Central Luzon': 'Region III (Central Luzon)',
+    'CALABARZON': 'Region IV-A (CALABARZON)',
+    'MIMAROPA': 'Region IV-B (MIMAROPA)',
+    'Bicol Region': 'Region V (Bicol Region)',
+    'Western Visayas': 'Region VI (Western Visayas)',
+    'Central Visayas': 'Region VII (Central Visayas)',
+    'Eastern Visayas': 'Region VIII (Eastern Visayas)',
+    'Zamboanga Peninsula': 'Region IX (Zamboanga Peninsula)',
+    'Northern Mindanao': 'Region X (Northern Mindanao)',
+    'Davao Region': 'Region XI (Davao Region)',
+    'SOCCSKSARGEN': 'Region XII (SOCCSKSARGEN)',
+    'Caraga': 'Region XIII (Caraga)',
+    'ARMM': 'Autonomous Region in Muslim Mindanao (ARMM)',
+    'CAR': 'Cordillera Administrative Region (CAR)',
+    'NCR': 'National Capital Region (NCR)'
+}
+
+# Update your Sidebar code:
 with st.sidebar:
-    st.header("Input Parameters")
-    target_year = st.selectbox("Target Year", [2025, 2026, 2027])
-    
-    # Use the specific regions the model expects
-    regions_list = [
-        'Cordillera Administrative Region (CAR)', 'National Capital Region (NCR)',
-        'I - Ilocos Region', 'II - Cagayan Valley', 'III - Central Luzon',
-        'CALABARZON', 'MIMAROPA Region', 'V - Bicol Region',
-        'VI - Western Visayas', 'VII - Central Visayas', 'VIII - Eastern Visayas',
-        'IX - Zamboanga Peninsula', 'X - Northern Mindanao', 'XI - Davao Region',
-        'XII - SOCCSKSARGEN', '13 - Caraga', 'BARMM'
-    ]
+    selected_display_name = st.selectbox("Select Region", list(regions_map.keys()))
+    # This gets the "Internal" name the model needs
+    selected_region = regions_map[selected_display_name] 
+
+# The rest of the logic (input_dict and feature_df) remains the same!
     selected_region = st.selectbox("Select Region", regions_list)
 
 col1, col2 = st.columns(2)
