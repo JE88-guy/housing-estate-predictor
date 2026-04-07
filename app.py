@@ -17,43 +17,40 @@ growth_prev = st.number_input("Previous Growth Rate", value=1.2)
 growth_prev2 = st.number_input("Growth Rate (2 Years Ago)", value=1.1)
 
 # List ALL regions exactly as they appeared in your training data
-regions = [
-    'National Capital Region (NCR)', 
-    'Cordillera Administrative Region (CAR)',
-    'I - Ilocos Region', 'II - Cagayan Valley', 'III - Central Luzon',
-    'CALABARZON', 'MIMAROPA Region', 'V - Bicol Region',
-    'VI - Western Visayas', 'VII - Central Visayas', 'VIII - Eastern Visayas',
-    'IX - Zamboanga Peninsula', 'X - Northern Mindanao', 'XI - Davao Region',
-    'XII - SOCCSKSARGEN', '13 - Caraga', 'BARMM'
+expected_columns = [
+    'Prev2_Growth', 'Prev2_Population', 'Prev_Growth', 'Prev_Population', 'Year',
+    'Region_Cordillera Administrative Region (CAR)',
+    'Region_National Capital Region (NCR)',
+    'Region_I - Ilocos Region', 'Region_II - Cagayan Valley', 
+    'Region_III - Central Luzon', 'Region_CALABARZON', 
+    'Region_MIMAROPA Region', 'Region_V - Bicol Region',
+    'Region_VI - Western Visayas', 'Region_VII - Central Visayas', 
+    'Region_VIII - Eastern Visayas', 'Region_IX - Zamboanga Peninsula', 
+    'Region_X - Northern Mindanao', 'Region_XI - Davao Region',
+    'Region_XII - SOCCSKSARGEN', 'Region_13 - Caraga', 'Region_BARMM'
 ]
-selected_region = st.selectbox("Select Region", regions)
 
 if st.button("Analyze Strategy"):
-    # 2. Create the base features (Numerical)
-    # Order must match your error: Prev2_Growth, Prev2_Population, Prev_Growth, Prev_Population, Year
-    data = {
-        'Prev2_Growth': [growth_prev2],
-        'Prev2_Population': [pop_prev2],
-        'Prev_Growth': [growth_prev],
-        'Prev_Population': [pop_prev],
-        'Year': [target_year]
-    }
+    # Create a dictionary with ALL columns initialized to 0
+    input_dict = {col: [0] for col in expected_columns}
     
-    # 3. Handle One-Hot Encoding for Regions
-    for reg in regions:
-        column_name = f"Region_{reg}"
-        data[column_name] = [1 if reg == selected_region else 0]
+    # Fill in the numerical values
+    input_dict['Year'] = [target_year]
+    input_dict['Prev_Population'] = [pop_prev]
+    input_dict['Prev2_Population'] = [pop_prev2]
+    input_dict['Prev_Growth'] = [growth_prev]
+    input_dict['Prev2_Growth'] = [growth_prev2]
     
-    # 4. Convert to DataFrame
-    feature_df = pd.DataFrame(data)
+    # Fill in the One-Hot Region (The "1")
+    region_col = f"Region_{selected_region}"
+    if region_col in input_dict:
+        input_dict[region_col] = [1]
     
-    # 5. Predict
-    prediction = model.predict(feature_df)
+    # Convert to DataFrame - this maintains the EXACT order of expected_columns
+    feature_df = pd.DataFrame(input_dict)[expected_columns]
     
-    st.header(f"Projected Population: {int(prediction[0]):,}")
-    
-    # Strategy Logic
-    if prediction[0] > 5000000:
-        st.success("🎯 **High Priority:** High-density housing recommended.")
-    else:
-        st.info("📉 **Moderate Priority:** Focused development recommended.")
+    try:
+        prediction = model.predict(feature_df)
+        st.header(f"Projected Population: {int(prediction[0]):,}")
+    except Exception as e:
+        st.error(f"Alignment Error: {e}")
