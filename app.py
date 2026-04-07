@@ -1,27 +1,55 @@
 import streamlit as st
 import joblib
 import pandas as pd
+import os
 
-# Load your model (Make sure the path matches your Drive!)
+# 1. Robust Model Loading
 path = 'Models/Population_Model.pkl'
-model = joblib.load(path)
+
+if os.path.exists(path):
+    model = joblib.load(path)
+else:
+    st.error(f"❌ Model file not found at {path}. Check your GitHub folder structure!")
+    st.stop()
 
 st.set_page_config(page_title="Housing Strategy", page_icon="🏠")
-st.title("Real Estate Strategy & Population Predictor")
+st.title("🏘️ Real Estate Strategy & Population Predictor")
+st.markdown("---")
 
-# Input features based on your Phase 4 model
-# Adjust these based on your actual feature names!
-pop_2024 = st.number_input("Enter 2024 Population", value=1000000)
-growth_prev = st.slider("Previous Growth Rate (%)", 0.0, 5.0, 1.2)
+# 2. User Inputs (Matching your Training Features)
+col1, col2 = st.columns(2)
 
-if st.button("Analyze ROI Potential"):
-    # This must match the shape of your 'features' variable from Phase 5
-    features = [[pop_2024, growth_prev]]
-    prediction = model.predict(features)
+with col1:
+    target_year = st.selectbox("Target Year", [2025, 2026, 2027])
+    pop_current = st.number_input("Current Population (Count)", value=1000000, step=10000)
 
-    st.write(f"### Projected 2025 Population: {int(prediction[0]):,}")
+with col2:
+    growth_prev = st.slider("Previous Growth Rate (%)", 0.0, 5.0, 1.2)
 
-    if prediction[0] > 5000000:
-        st.success("🎯 High Priority: Ideal for Large-Scale Housing Estates")
-    else:
-        st.info("📉 Moderate Priority: Focus on Niche Developments")
+# 3. Prediction Logic
+if st.button("🚀 Analyze ROI Potential"):
+    # Organize features into a list of lists (the "Shape" the model expects)
+    # Ensure the order matches exactly: [Year, Prev_Population, Growth_Rate]
+    input_data = [[target_year, pop_current, growth_prev]] 
+
+    # Convert to DataFrame with the exact column names from your training
+    feature_df = pd.DataFrame(input_data, columns=['Year', 'Prev_Population', 'Growth_Rate'])
+    
+    try:
+        prediction = model.predict(feature_df)
+        
+        # Display Result
+        st.write(f"### Projected {target_year} Population:")
+        st.header(f"{int(prediction[0]):,}")
+        
+        # Strategy Logic
+        if prediction[0] > 5000000:
+            st.success("🎯 **High Priority:** Ideal for Large-Scale Housing Estates (Horizontal/Vertical Mix)")
+        elif prediction[0] > 2000000:
+            st.info("📈 **Moderate Priority:** Suitable for Mid-Sized Residential Subdivisions")
+        else:
+            st.warning("📉 **Strategic Caution:** Focus on Niche Developments or Commercial Units")
+            
+    except Exception as e:
+        st.error(f"Model Error: {e}")
+        st.info("Check if your model expects more/fewer features than provided.")
