@@ -15,8 +15,10 @@ st.set_page_config(page_title="Housing Strategy", page_icon="🏠")
 st.title("🏘️ Real Estate Strategy Predictor")
 
 # 2. The EXACT column names from your 'seen at fit time' error
+# 1. Update the expected columns list (Added 'Rolling Growth')
 expected_columns = [
-    'Prev2_Growth', 'Prev2_Population', 'Prev_Growth', 'Prev_Population', 'Year',
+    'Prev2_Growth', 'Prev2_Population', 'Prev_Growth', 'Prev_Population', 
+    'Rolling Growth', 'Year',  # Added Rolling Growth here
     'Region_Cordillera Administrative Region (CAR)',
     'Region_National Capital Region (NCR)',
     'Region_Region I (Ilocos Region)', 
@@ -35,6 +37,25 @@ expected_columns = [
     'Region_Region XIII (Caraga)',
     'Region_Autonomous Region in Muslim Mindanao (ARMM)'
 ]
+
+# 2. Update the Logic inside the Button
+if st.button("Analyze Strategy"):
+    input_dict = {col: [0.0] for col in expected_columns}
+    
+    # Fill numerical data
+    input_dict['Year'] = [float(target_year)]
+    input_dict['Prev_Population'] = [float(pop_prev)]
+    input_dict['Prev2_Population'] = [float(pop_prev2)]
+    input_dict['Prev_Growth'] = [float(growth_prev)]
+    input_dict['Prev2_Growth'] = [float(growth_prev2)]
+    
+    # Calculate Rolling Growth (Average of the last two growth rates)
+    input_dict['Rolling Growth'] = [(float(growth_prev) + float(growth_prev2)) / 2]
+    
+    # Map the region
+    region_column = regions_map[selected_display]
+    if region_column in input_dict:
+        input_dict[region_column] = [1.0]
 
 # 3. Friendly Names Mapped to Training Names
 regions_map = {
