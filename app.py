@@ -1,55 +1,59 @@
 import streamlit as st
 import joblib
 import pandas as pd
-import os
+import numpy as np
 
-# 1. Robust Model Loading
+# Load Model
 path = 'Models/Population_Model.pkl'
+model = joblib.load(path)
 
-if os.path.exists(path):
-    model = joblib.load(path)
-else:
-    st.error(f"❌ Model file not found at {path}. Check your GitHub folder structure!")
-    st.stop()
+st.title("🏘️ Housing Estate Strategy Predictor")
 
-st.set_page_config(page_title="Housing Strategy", page_icon="🏠")
-st.title("🏘️ Real Estate Strategy & Population Predictor")
-st.markdown("---")
+# 1. User Inputs
+target_year = st.selectbox("Year", [2025, 2026, 2027])
+pop_prev = st.number_input("Previous Population", value=1000000)
+pop_prev2 = st.number_input("Population (2 Years Ago)", value=980000)
+growth_prev = st.number_input("Previous Growth Rate", value=1.2)
+growth_prev2 = st.number_input("Growth Rate (2 Years Ago)", value=1.1)
 
-# 2. User Inputs (Matching your Training Features)
-col1, col2 = st.columns(2)
+# List ALL regions exactly as they appeared in your training data
+regions = [
+    'National Capital Region (NCR)', 
+    'Cordillera Administrative Region (CAR)',
+    'I - Ilocos Region', 'II - Cagayan Valley', 'III - Central Luzon',
+    'CALABARZON', 'MIMAROPA Region', 'V - Bicol Region',
+    'VI - Western Visayas', 'VII - Central Visayas', 'VIII - Eastern Visayas',
+    'IX - Zamboanga Peninsula', 'X - Northern Mindanao', 'XI - Davao Region',
+    'XII - SOCCSKSARGEN', '13 - Caraga', 'BARMM'
+]
+selected_region = st.selectbox("Select Region", regions)
 
-with col1:
-    target_year = st.selectbox("Target Year", [2025, 2026, 2027])
-    pop_current = st.number_input("Current Population (Count)", value=1000000, step=10000)
-
-with col2:
-    growth_prev = st.slider("Previous Growth Rate (%)", 0.0, 5.0, 1.2)
-
-# 3. Prediction Logic
-if st.button("🚀 Analyze ROI Potential"):
-    # Organize features into a list of lists (the "Shape" the model expects)
-    # Ensure the order matches exactly: [Year, Prev_Population, Growth_Rate]
-    input_data = [[target_year, pop_current, growth_prev]] 
-
-    # Convert to DataFrame with the exact column names from your training
-    feature_df = pd.DataFrame(input_data, columns=['Year', 'Prev_Population', 'Growth_Rate'])
+if st.button("Analyze Strategy"):
+    # 2. Create the base features (Numerical)
+    # Order must match your error: Prev2_Growth, Prev2_Population, Prev_Growth, Prev_Population, Year
+    data = {
+        'Prev2_Growth': [growth_prev2],
+        'Prev2_Population': [pop_prev2],
+        'Prev_Growth': [growth_prev],
+        'Prev_Population': [pop_prev],
+        'Year': [target_year]
+    }
     
-    try:
-        prediction = model.predict(feature_df)
-        
-        # Display Result
-        st.write(f"### Projected {target_year} Population:")
-        st.header(f"{int(prediction[0]):,}")
-        
-        # Strategy Logic
-        if prediction[0] > 5000000:
-            st.success("🎯 **High Priority:** Ideal for Large-Scale Housing Estates (Horizontal/Vertical Mix)")
-        elif prediction[0] > 2000000:
-            st.info("📈 **Moderate Priority:** Suitable for Mid-Sized Residential Subdivisions")
-        else:
-            st.warning("📉 **Strategic Caution:** Focus on Niche Developments or Commercial Units")
-            
-    except Exception as e:
-        st.error(f"Model Error: {e}")
-        st.info("Check if your model expects more/fewer features than provided.")
+    # 3. Handle One-Hot Encoding for Regions
+    for reg in regions:
+        column_name = f"Region_{reg}"
+        data[column_name] = [1 if reg == selected_region else 0]
+    
+    # 4. Convert to DataFrame
+    feature_df = pd.DataFrame(data)
+    
+    # 5. Predict
+    prediction = model.predict(feature_df)
+    
+    st.header(f"Projected Population: {int(prediction[0]):,}")
+    
+    # Strategy Logic
+    if prediction[0] > 5000000:
+        st.success("🎯 **High Priority:** High-density housing recommended.")
+    else:
+        st.info("📉 **Moderate Priority:** Focused development recommended.")
