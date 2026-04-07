@@ -24,7 +24,7 @@ with st.sidebar:
     st.header("Settings")
     target_year = st.selectbox("Year", [2025, 2026, 2027])
     
-    # Let's extract region names from the model's features automatically!
+    
     # This looks for any feature starting with 'Region_'
     available_regions = [f.replace('Region_', '') for f in model_features if f.startswith('Region_')]
     selected_region_name = st.selectbox("Select Region", available_regions)
@@ -70,6 +70,6 @@ if st.button("Analyze Strategy"):
         st.error(f"Prediction Error: {e}")
 
 # DEBUG TOOLS (Expand this if you get stuck again)
-with st.expander("🛠️ Debug: See Model's Required Features"):
+with st.expander("Debug: See Model's Required Features"):
     st.write("Your model expects these exact columns:")
     st.write(model_features)
