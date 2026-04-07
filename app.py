@@ -3,7 +3,7 @@ import joblib
 import pandas as pd
 
 # Load your model (Make sure the path matches your Drive!)
-path = '/content/drive/MyDrive/Models/Population_Model.pkl'
+path = 'Models/Population_Model.pkl'
 model = joblib.load(path)
 
 st.set_page_config(page_title="Housing Strategy", page_icon="🏠")
